@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Time-Accurate Speech Rich Transcription with Non-Fluencies</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="helper-v2.js" defer=""></script>
+    <style>
+        body {
+            background: linear-gradient(to right, #f8f9fa, #e0f7fa);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        h1,
+        h2 {
+            font-family: 'Georgia', serif;
+            color: #007bff;
+        }
+
+        td {
+            text-align: center;
+            vertical-align: middle;
+            padding: 16px;
+            font-size: 16px;
+        }
+
+        audio {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .timestamp-label {
+            color: gray;
+        }
+
+        table.wide-audio audio {
+            width: 40vw;
+            max-width: 40vw;
+        }
+
+        tr:not(:first-child) {
+            border-top: 1px solid lightgrey;
+        }
+
+        .container {
+            background: #ffffff;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .container h1,
+        .container h2 {
+            margin-top: 20px;
+        }
+
+        .pagination .page-link {
+            color: #007bff;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .page-link:hover {
+            background-color: #e9ecef;
+        }
+
+        .fade-in {
+            animation: fadeIn 2s;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .shadow-card {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .shadow-card:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+            padding: 16px;
+            font-size: 18px;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tbody tr:hover {
+            background-color: #d1ecf1;
+        }
+
+        .header-text {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .instruction {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .reference-text {
+            font-size: 12px;
+            color: #495057;
+        }
+        .figure-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .figure-container img {
+            max-width: 100%;
+            height: auto;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container pt-5 mt-5 text-center fade-in">
+        <h1>Time-Accurate Speech Rich Transcription with Non-Fluencies</h1>
+        <p>
+            <b>Abstract. </b> Speech is a hierarchical collection of text, prosody, emotions, dysfluencies, etc. Automatic transcription of speech that goes beyond text (words) is an underexplored problem. We focus on transcribing speech along with non-fluencies (dysfluencies). The current state-of-the-art pipeline suffers from complex architecture design, training complexity, and significant shortcomings in the local sequence aligner, and it does not explore in-context learning capacity. In this work, we propose SSDM 2.0, which tackles those shortcomings via four main contributions: (1) We propose a novel neural articulatory flow to derive highly scalable speech representations. (2) We developed a full-stack connectionist subsequence aligner that captures all types of dysfluencies.(3) We introduced a mispronunciation prompt pipeline and consistency learning module into LLM to leverage dysfluency in-context pronunciation learning abilities. (4) We curated Libri-Dys and open-sourced the current largest-scale co-dysfluency corpus, Libri-Co-Dys, for future research endeavors. Overall, SSDM 2.0 outperforms SSDM and all other dysfluency transcription models by a large margin. 
+        </p>
+
+        <br>
+        
+        <div class="figure-container">
+            <img src="image/demo_iclr.png" alt="Demo" id="figure">
+        </div>
+
+    </div>
+
+
+    <div class="container pt-5 mt-5 text-center fade-in">
+        <h2>nfvPPA Speech</h2>
+        <p>
+            People with nfvPPA gradually have more trouble expressing themselves, even though they still understand the meaning of words. They might begin speaking in shorter phrases or pausing mid-sentence or mid-word. They may have increasing difficulty with pronouncing or mixing up sounds in familiar words. 
+        </p>
+    </div>
+
+     <div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded container-1">
+        <div class="flex-container">
+            <div class="table-responsive pt-1">
+                <table class="table-pagination pt-1 shadow-card" id="rich-captions-1">
+                    <thead>
+                        <tr>
+                            <th>Audio</th>
+                            <th>SALMONN 13B</th>
+                            <th>GPT-4o (Real-Time)</th>
+                            <th>SSDM</th>
+                            <th>SSDM 2.0 (Ours)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><audio controls="" controlslist="nodownload" class="px-1">
+                                    <source src="audio/ppa/segment2.wav" type="audio/wav">Your browser does not support the audio element.
+                                </audio><br><span class="header-text">Instruction:</span> What do you think of the pronunciation?
+                                <br><span class="reference-text">Reference Text (Optional): Well, he is nearly 93 years old.</span></td>
+      
+                            <td>The articulation in this sentence is clear and easy to understand. The speaker is pronouncing each word clearly and distinctly, which makes it easier for the listener to follow along and understand the message being conveyed. Overall, the articulation in this sentence is excellent.</td>
+                            <td>From the audio, it seems like the speaker might be struggling with clarity in pronunciation. The words are a bit slurred, which could be due to a variety of factors, such as age or a speech impairment. In this case, it sounds like there might be some difficulty with articulation, making it a bit challenging to understand each word clearly.</td>
+                            <td> The person is saying, "Well, he is nearly 93 years old." There is a stutter on the word "nearly" at 1.20 seconds.</td>
+                            <td>"For the word 'nearly,' there is a stutter on the '<span style="color: red;">n</span>' sound at 1.48 seconds, which affects the smoothness of articulation and may draw attention to the pronunciation. This type of stutter can briefly interrupt the word’s natural flow, altering listener perception. Additionally, <span style="color: red;">there is an irregular pause at 0.36 seconds</span>, which introduces a minor break in the rhythm of the speech. Despite these slight irregularities, the other pronunciations sound clear and fluent." </td>
+                        </tr>
+                        <tr>
+                            <td><audio controls="" controlslist="nodownload" class="px-1">
+                                    <source src="audio/ppa/segment4.wav" type="audio/wav">Your browser does not support the audio element.
+                                </audio><br><span class="header-text">Instruction:</span> What do you think of the pronunciation?
+                                <br><span class="reference-text">Reference Text (Optional): He dresses himself in an old black frock coat</span></td>
+                      
+                            <td>The pronunciation of the words in the sentence is clear and easy to understand. The articulation of the consonants and vowels is accurate, and there are no mispronunciations. Overall, the pronunciation and articulation of the words in the sentence are good.</td>
+                            <td>It seems like the speaker is having difficulty with fluency, resulting in a pause in the middle of the sentence. The pronunciation of "dresses" is also a bit unclear. This could be due to a speech disorder or simply a moment of hesitation.</td>
+                            <td>The pronunciation is almost ok. There is repetition of phoneme "b" on word "black" at 3.30 seconds.</td>
+                            <td>There is a repetition of the phoneme 'b' in the word 'black' at 3.50 seconds.<span style="color: red;">It seems the speaker is pronouncing it as 'p,' which indicates a voicing error.</span>  The other articulations are clear.</td>
+                        </tr>
+                        <tr>
+                            <td><audio controls="" controlslist="nodownload" class="px-1">
+                                    <source src="audio/ppa/segment5.wav" type="audio/wav">Your browser does not support the audio element.
+                                </audio><br><span class="header-text">Instruction:</span> What do you think of the pronunciation?
+                                <br><span class="reference-text">Reference Text (Optional): Usually several buttons missing</td>
+
+                            <td>I think the pronunciation/articulation is a bit difficult to understand, especially for non-native speakers. The speaker seems to be emphasizing certain syllables and words, which can be distracting and take away from the overall clarity of the message. Additionally, the speaker seems to be speaking at a fast pace, which can make it difficult for listeners to follow along. Overall, I would say that the pronunciation/articulation could be improved to make the message easier to understand.</td>
+                            <td>In this clip, the speaker's pronunciation is not very clear, especially with the word "multiple," which sounded more like "muh-button." The rhythm of the speech is also a bit uneven, which might make it harder to understand. This could be due to issues with articulation or perhaps nervousness affecting the flow of speech. </td>
+                            <td>There are multiple problems. The speaker should say "usually several buttons missing". There is an insertion of phoneme on the word "usually" at 1.00 seconds and there is a stutter on the word "buttons" at 3.48 seconds.</td>
+                            <td>"For the word 'usually,' <span style="color: red;">there is an insertion of the phoneme 's'</span> at 1.24 seconds, which adds an unexpected sound and may momentarily interrupt the natural pronunciation. Such additions can slightly impact the fluency and listener’s focus on the intended word. Additionally, in the word 'missing,' the speaker stutters on 'buttons' with a <span style="color: red;">repeated sound of 'muh'</span> at 3.64 seconds, which influences the clarity and rhythm. Despite these small deviations, the other pronunciations are clear and well-articulated." </td>
+                        </tr>
+                        <tr>
+                            <td><audio controls="" controlslist="nodownload" class="px-1">
+                                    <source src="audio/ppa/segment6.wav" type="audio/wav">Your browser does not support the audio element.
+                                </audio><br><span class="header-text">Instruction:</span> What do you think of the pronunciation?
+                                <br><span class="reference-text">Reference Text (Optional): A long beard clings to his chin</td>
+           
+                            <td>As an AI language model, I don't have personal opinions or preferences. However, I can tell you that the pronunciation/articulation of the sentence appears to be correct based on the rules of the International Phonetic Alphabet (IPA). </td>
+                            <td>The speech here seems quite disjointed. The phrase "clings to his tent" is unclear, particularly the word "tent," which is pronounced with some distortion. It sounds like the speaker may have difficulty with certain consonants or with the overall articulation, leading to a lack of clarity in the pronunciation.</td>
+                            <td>The man is saying "A long beard clings to his chin". There is a stutter of phoneme "ch" on the word "chin" at 3.60 seconds. </td>
+                            <td><span style="color: red;">There is an irregular pause at 1.00 seconds, lasting around 0.2 seconds</span>, which may influence the natural rhythm of the sentence, briefly interrupting the expected flow. This pause might not greatly impact comprehension, yet it introduces a minor disruption. At 3.82 seconds, the phoneme 'ch' is stuttered on the word 'chin,' which affects fluency slightly but remains understandable. Overall, this is a commendable effort with largely clear and precise pronunciation </td>
+                        </tr>
+                        <tr>
+                            <td><audio controls="" controlslist="nodownload" class="px-1">
+                                    <source src="audio/ppa/segment7.wav" type="audio/wav">Your browser does not support the audio element.
+                                </audio><br><span class="header-text">Instruction:</span> What do you think of the pronunciation?
+                                <br><span class="reference-text">Reference Text (Optional): Giving those who observe him a pronounced feeling of the utmost respect</td>
+                
+                            <td>I think the pronunciation/articulation is clear and easy to understand. </td>
+                            <td>The phrase "feeling of them... of respect" is quite jumbled. It sounds like the speaker is struggling with fluency and clear articulation, making it challenging to follow the words. This could be due to a speech disorder or another factor affecting speech production.</td>
+                            <td>There are several pronunciation problems. First, there is a repetition of the word "those" at 1.36 seconds. Second, there is a repetition of the word "pronounced" at 6.10 seconds. Try to speak smoothly. </td>
+                            <td>There is a <span style="color: red;">repetition of the sound 'th'</span> in the word 'those,' which may draw attention to the articulation and slightly disrupt the natural flow. Such repetitions can momentarily affect listener comprehension, though they don’t typically obscure the intended meaning. This occurs at 1.44 seconds. Additionally, <span style="color: red;">the sound 'pro' is also repeated</span> in the word 'pronounced,' affecting the fluency at 6.02 seconds. Overall, the pronunciation remains clear and understandable.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+
+
+    <div class="container pt-5 mt-5 text-center fade-in">
+        <h2>Artificial Simulated Speech 1</h2>
+        <p>
+            Samples from Libri-Dys test set. 
+        </p>
+    </div>
+
+    <div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded container-1">
+        <div class="flex-container">
+            <div class="table-responsive pt-1">
+                <table class="table-pagination pt-1 shadow-card" id="rich-captions-1">
+                    <thead>
+                        <tr>
+                            <th>Audio</th>
+                            <th>SALMONN 13B</th>
+                            <th>GPT-4o (Real-Time)</th>
+                            <th>SSDM</th>
+                            <th>SSDM 2.0 (Ours)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><audio controls="" controlslist="nodownload" class="px-1">
+                                    <source src="audio/art-simulated/121_121726_000004_000003_missing.wav" type="audio/wav">Your browser does not support the audio element.
+                                </audio><br><span class="header-text">Instruction:</span> What do you think of the pronunciation?
+                                <br><span class="reference-text">Reference Text (Optional): Also, a popular contrivance whereby love making may be suspended but not stopped during the picnic season.</span></td>
+            
+                            <td>I think that the problems for pronunciation and articulation for each phoneme and word are significant. It can be challenging for learners to master the sounds and rhythms of the language, especially if they are not native speakers. However, with practice and exposure to the language, learners can improve their pronunciation and articulation over time.</td>
+                            <td>In the audio clip, the speaker's pronunciation is generally clear. However, the word "contrivance" might be slightly challenging due to its uncommon usage. It could be emphasized a bit more to ensure clarity. Other than that, the articulation and pacing seem well done.</td>
+                            <td>You are attempting to say, 'Also, a popular contrivance whereby lovemaking may be suspended but not stopped during the picnic season.' There is a missing phoneme in the word 'picnic' at 7.8s to 8.0s. </td>
+                            <td>At 8.04 seconds, the <span style="color: red;">phoneme 'c' is missing</span> in the word 'picnic,' which alters the clarity of the word slightly. This omission may affect listener comprehension, especially in cases where precise articulation is critical. Additionally, in the word 'season,' there is a <span style="color: red;">slight prolongation of the 'ea' sound</span>, which elongates the vowel and impacts the overall flow of the pronunciation. While these are minor deviations, they contribute to the distinct speech pattern observed in the recording </td>
+                        </tr>
+                        <tr>
+                            <td><audio controls="" controlslist="nodownload" class="px-1">
+                                    <source src="audio/art-simulated/121_121726_000004_000003_prolong.wav" type="audio/wav">Your browser does not support the audio element.
+                                </audio><br><span class="header-text">Instruction:</span> What do you think of the pronunciation?
+                                <br><span class="reference-text">Reference Text (Optional):Also, a popular contrivance whereby love making may be suspended but not stopped during the picnic season.</span></td>
+                            <td>The pronunciation is clear and easy to understand.</td>
+                            <td>In this example, the speaker's pronunciation of "contrivance" is clear and more emphasized, which improves the clarity. Overall, the articulation and pacing are good. It sounds well-enunciated and easy to understand.</td> 
+                            <td>Your articulation is almost perfect. Note that there is a prolongation at the word 'season' at 8.0s. </td>
+                            <td>At 7.88 seconds, there is a noticeable <span style="color: red;">prolongation of the 'sea' sound</span> in the word 'season,' which lengthens the vowel and affects the rhythm of the word. This extended sound may draw attention to the pronunciation, potentially disrupting the natural flow of the sentence.  </td> 
+                        </tr>
+                        <tr>
+                            <td><audio controls="" controlslist="nodownload" class="px-1">
+                                    <source src="audio/art-simulated/121_121726_000034_000001_missing.wav" type="audio/wav">Your browser does not support the audio element.
+                                </audio><br><span class="header-text">Instruction:</span> What do you think of the pronunciation?
+                                <br><span class="reference-text">Reference Text (Optional): Also, a draft on futurity, sometimes honored, but generally extended.</td>
+                            <td>The pronunciation is perfect.</td>
+                            <td>In this clip, the phrase "draft on tourney" might be a bit unclear, possibly due to the uncommon combination of words. It could help to articulate "draft" and "tourney" more distinctly to improve clarity. The rest of the sentence is well enunciated, making it easy to understand.</td>
+                            <td>Your pronunciation is clear. There is a missing syllable in the word 'futurity' at 1.9s to 2.1s. </td>
+                            <td>At 2.04 seconds, <span style="color: red;"> the initial 'fu' sound</span> in the word 'futurity' is missing, which affects the intelligibility of the word. This omission alters the listener’s perception, as it may lead to initial confusion about the intended term. While the rest of the word is articulated correctly, the absence of the initial sound impacts the overall clarity and completeness of the pronunciation. </td>
+                        </tr>
+                        <tr>
+                            <td><audio controls="" controlslist="nodownload" class="px-1">
+                                    <source src="audio/art-simulated/121_127105_000000_000000_prolong.wav" type="audio/wav">Your browser does not support the audio element.
+                                </audio><br><span class="header-text">Instruction:</span> What do you think of the pronunciation?
+                                <br><span class="reference-text">Reference Text (Optional): This is a LibriVox recording.</td>
+                            <td>As an AI language model, I don't have personal opinions, but I can tell you that pronunciation and articulation can be challenging for learners of any language.</td>
+                            <td>In this example, the speaker's pronunciation is clear and well-paced. The phrase "LibriVox recording" is articulated clearly, making it easy to understand. Overall, it's a well-pronounced. </td>
+                            <td>There is a significant prolongation of the word 'LibriVox' at 0.8s to 1.4s. </td>
+                            <td>At 0.82 seconds, there is a significant <span style="color: red;">prolongation of the 'lib' sound</span> in the word 'LibriVox,' which results in an extended initial syllable. This elongation can affect the rhythm and pacing of the pronunciation, potentially drawing undue attention to the word and altering the natural flow of the sentence.  </td> 
+                        </tr>
+                        <tr>
+                            <td><audio controls="" controlslist="nodownload" class="px-1">
+                                    <source src="audio/art-simulated/121_127105_000017_000001_replace.wav" type="audio/wav">Your browser does not support the audio element.
+                                </audio><br><span class="header-text">Instruction:</span> What do you think of the pronunciation?
+                                <br><span class="reference-text">Reference Text (Optional): You took the thing down?</td>
+                            <td>The pronunciation is clear and easy to understand. </td>
+                            <td>In this clip, the phrase "took the thing down" is articulated clearly. However, there might be a slight hesitation or pause between the words, which could affect the flow of the sentence. Overall, the pronunciation is clear, but smoothing out the delivery could enhance clarity. </td>
+                            <td>It seems for the word 'you,' you are saying 'who' at 0.5s to 0.8s. </td>
+                            <td><span style="color: red;">The word 'you' is substituted with 'who,'</span> which changes the intended meaning and may create confusion in the context. This substitution shifts the grammatical focus of the sentence and can affect clarity for listeners, especially when precision is crucial. This occurs at 0.56 seconds.  </td> 
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="container pt-5 mt-5 text-center fade-in">
+        <h2>Artificial Simulated Speech 2</h2>
+        <p>
+            Samples from Libri-Dys-Co test set. 
+        </p>
+    </div>
+
+    <div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded container-1">
+        <div class="flex-container">
+            <div class="table-responsive pt-1">
+                <table class="table-pagination pt-1 shadow-card" id="rich-captions-1">
+                    <thead>
+                        <tr>
+                            <th>Audio</th>
+                            <th>SALMONN 13B</th>
+                            <th>GPT-4o (Real-Time)</th>
+                            <th>SSDM</th>
+                            <th>SSDM 2.0 (Ours)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr>
+                            <td><audio controls="" controlslist="nodownload" class="px-1">
+                                    <source src="audio/art-simulated-co/121_127105_000014_000000_multi_rep.wav" type="audio/wav">Your browser does not support the audio element.
+                                </audio><br><span class="header-text">Instruction:</span> What do you think of the pronunciation?
+                                <br><span class="reference-text">Reference Text (Optional):He took no notice of her; he looked at me, but as if, instead of me, he saw what he spoke of.</span></td>
+            
+                            <td> Your pronunciation is flawless, with each word articulated clearly and precisely. The natural flow and clarity make it easy to follow, and every sound is well-defined.</td>
+                            <td>It sounds like the speaker might be having trouble with clear enunciation, particularly with the "th" sound in words like "he," which could come across as "e." Also, the "t" sound in "at" seemed slightly unclear. </td>
+                            <td>Your pronunciation maintains clarity for the majority of the recording, with only a brief stutter from 5.20 to 5.80 seconds. </td>
+                            <td><span style="color: red;">A one-second block occurs within the word 'saw' at the 5-second mark </span>, which introduces a break that impacts the fluidity of pronunciation. This kind of block may temporarily interrupt the speech pattern, creating a slight disruption for the listener. Furthermore,  <span style="color: red;">at 8 seconds, there is a phonetic error on the word 'of' after 'spoken</span>,' which could briefly hinder clarity. Beyond these instances, the overall articulation is clear.  </td>
+                        </tr>
+                        <tr>
+                            <td><audio controls="" controlslist="nodownload" class="px-1">
+                                    <source src="audio/art-simulated-co/84_121123_000022_000002_rb.wav" type="audio/wav">Your browser does not support the audio element.
+                                </audio><br><span class="header-text">Instruction:</span> What do you think of the pronunciation?
+                                <br><span class="reference-text">Reference Text (Optional):Yes, yes, continued Morrel; "recall the scene, for the words you thought were only given to silence and solitude fell into my ears."</span></td>
+                            <td>Your pronunciation is excellent, exhibiting precise articulation and clarity.</td>
+                            <td>Unable to transcribe the full sentence due to a block, which introduces an interruption. </td> 
+                            <td>There appears to be a significant block in the word 'continued' from 1.20 to 4.88 seconds. All other pronunciations sound good. </td>
+                            <td>There is a noticeable block <span style="color: red;">after the phoneme 'c' in the word 'continued' at 1.30 seconds, lasting approximately 3 seconds.</span> This interruption affects the flow of speech, potentially impacting listener comprehension by creating a significant pause. Additionally, there is <span style="color: red;">a replacement error for the word 'for' at 8.00 seconds</span>, which may briefly alter the intended meaning. Despite these issues, the rest of the pronunciation remains clear and fluent.</td> 
+                        </tr>
+                        <tr>
+                            <td><audio controls="" controlslist="nodownload" class="px-1">
+                                    <source src="audio/art-simulated-co/84_121123_000053_000001_multi_prolong.wav" type="audio/wav">Your browser does not support the audio element.
+                                </audio><br><span class="header-text">Instruction:</span> What do you think of the pronunciation?
+                                <br><span class="reference-text">Reference Text (Optional): We have before stated that all the servants had fled.</td>
+                            <td>The pronunciation is perfect.</td>
+                            <td>In this example, it sounds like the "s" in "stated" is a bit softer, making the word less distinct. There's also a slight pause between "have" and "been," which can disrupt the flow of the sentence.</td>
+                            <td>There is a prolongation in the word 'we' from 0.44 to 1.00 seconds, and there is also a stutter in the word 'stated' at 1.00 seconds. </td>
+                            <td>In the word 'we,' there is <span style="color: red;">a prolongation of the 'IY' sound at 0.20 seconds, lasting approximately 0.60 seconds</span>. This elongation adds an extra emphasis to the vowel, which may slightly affect the natural rhythm of the speech. Similarly, in the word 'stated,' <span style="color: red;">the 'EY' sound is extended for about 0.60 seconds at 0.88 seconds.</span> These prolonged vowel sounds contribute to a slower pace, which can influence the overall fluency. However, the rest of the pronunciation is consistent and clear. </td>
+                        </tr>
+                        <tr>
+                            <td><audio controls="" controlslist="nodownload" class="px-1">
+                                    <source src="audio/art-simulated-co/84_121123_000062_000007_multi_prolong.wav" type="audio/wav">Your browser does not support the audio element.
+                                </audio><br><span class="header-text">Instruction:</span> What do you think of the pronunciation?
+                                <br><span class="reference-text">Reference Text (Optional): Sir, he said, "are you disposed to confer a great obligation on an unhappy father who has just lost his daughter?"</td>
+                            <td>Your pronunciation is truly remarkable, with a natural flow that enhances the clarity of each word.</td>
+                            <td>In this example, the pronunciation is generally clear </td>
+                            <td>There is a significant prolongation in the word 'disposed' from 2.00 to 3.06 seconds. The other pronunciations sound good. </td>
+                            <td>There is a <span style="color: red;">prolongation of the 'OW' sound in the word 'disposed' from 2.06 to 2.86 seconds</span>, which introduces an extended emphasis on the vowel. This prolongation may affect the pacing of the word, adding a slight irregularity to the flow. Additionally, <span style="color: red;">in the word 'who,' the 'UW' sound is prolonged for approximately 0.60 seconds at 7.00 seconds</span>. These elongations can subtly impact the natural rhythm of the speech, yet the overall pronunciation remains clear and intelligible.  </td> 
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="container pt-5 mt-5 text-center fade-in">
+        <h2>Zero-Shot ASR</h2>
+        <p>
+            
+        </p>
+    </div> -->
+
+    <script>
+        // JavaScript to adjust figure size
+        function adjustFigureSize(width, height) {
+            var figure = document.getElementById('figure');
+            figure.style.width = width;
+            figure.style.height = height;
+        }
+
+        // Example of adjusting the figure size
+        adjustFigureSize('60%', 'auto'); // Adjust as needed
+    </script>
+
+    <script type="text/javascript">
+    var sc_project=13054009; 
+    var sc_invisible=1; 
+    var sc_security="aa2eda5c"; 
+    </script>
+    <script type="text/javascript"
+    src="https://www.statcounter.com/counter/counter.js" async></script>
+    <noscript><div class="statcounter"><a title="free hit counter"
+    href="https://statcounter.com/" target="_blank"><img class="statcounter"
+    src="https://c.statcounter.com/13054009/0/aa2eda5c/1/" alt="free hit counter"
+    referrerPolicy="no-referrer-when-downgrade"></a></div></noscript>
+    
+</body>
+
+</html>
